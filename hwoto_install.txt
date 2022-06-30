@@ -1,0 +1,151 @@
+code: aioquic server:
+https://github.com/aiortc/aioquic/tree/main/examples
+
+vpn maybe need.
+1.start cmd.exe as admin
+
+2.cmd.exe 
+@"%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -InputFormat None -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))" && SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+
+choco /?
+
+3.
+windows环境变量
+INCLUDE = "D:\installgreen\OpenSSL-Win64\include"
+LIB = "D:\installgreen\OpenSSL-Win64\lib"
+
+3.
+pip install -e .
+pip install asgiref dnslib httpbin starlette wsproto
+ 
+official: 
+
+python examples/http3_server.py --certificate tests/ssl_cert.pem --private-key tests/ssl_key.pem
+
+python examples/http3_server.py --certificate mykey/loclhost_cert.pem --private-key mykey/mykey.pem
+
+python examples/http3_server.py --certificate mykey/cert.pem --private-key mykey/mykey.pem
+
+
+python examples/http3_server.py --certificate sslkey/fullchain.cer --private-key sslkey/private.key   
+
+python examples/http3_server.py --certificate my1.cow8.cn/fullchain.cer --private-key my1.cow8.cn/my1.cow8.cn.key //ok
+
+
+pip install werkzeug==2.0.3
+for error
+
+
+openssl x509 -in ca_bundle.crt -text -noout >ca_bundle.pem
+openssl rsa -in private.key -text -noout >2.txt
+
+
+official cliant:
+python examples/http3_client.py --ca-certs tests/pycacert.pem https://localhost:4433/
+python examples/http3_client.py --ca-certs mykey/loclhost_cert.pem https://localhost:4433/
+python examples/http3_client.py --ca-certs mykey/cert.pem https://my2.cow8.cn:4433/
+
+python examples/http3_client.py --ca-certs sslkey/fullchain.cer.crt https://my1.cow8.cn:4433/   
+
+python examples/http3_client.py --ca-certs my1.cow8.cn/fullchain.cer https://my1.cow8.cn:4433/   //ok
+
+
+57     def datagram_received(self, data: Union[bytes, Text], addr: NetworkAddress) -> None:
+149 if protocol is not None
+135 datagram_received
+180 _process_events
+449 quic_event_received
+
+nowarning: no loop
+    #loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+	
+	
+-----------------
+https://freessl.cn/  推荐
+已经申请 my1.cow8.cn  目录
+
+2565557657@qq.com
+Wo1274haoba@1
+不要扣选邮件证书登录
+
+
+cmd.exe:
+curl https://get.acme.sh | sh
+
+gibash:
+acme.sh --version
+
+acme.sh --issue -d my1.cow8.cn  --dns dns_dp --server https://acme.freessl.cn/v2/DV90/directory/28zat9v5zkcbyayhjzgp
+
+
+C:\Users\Weimiao\.acme.sh\my1.cow8.cn
+
+------------------
+manage.sslforfree.com   这个要手动合并证书。才能用。90有效。
+
+sslkey 目录下是my1.cow8.cn 
+注意添加my1.cow8.cn 到host.
+
+----------------------
+openssl 自己生成的
+
+my2.cow8.cn mykey 下,mykey.pem
+localhost mykey 下loclhost_cert.pem
+----------------------
+
+
+11
+pwd:
+1234
+
+--------------------------------------------
+ssl 证书原理和参考：
+https://blog.csdn.net/zhypss/article/details/106653078
+openssl genrsa -out mykey.pem 2048 
+openssl req -new -key mykey.pem -out cert.csr  如果不公网发布，不需要。给ca机构申请证书的。
+openssl req -new -x509 -key mykey.pem -out cert.pem -days 1095   自己发布公钥
+
+--------------------------------------------
+
+注意要修改:
+src\aioquic\asyncio
+
+    #dhlu
+    #infos = await loop.getaddrinfo(host, port, type=socket.SOCK_DGRAM)    
+    infos = await loop.getaddrinfo("localhost", port, type=socket.SOCK_DGRAM)
+这样才能获得ipv6地址。
+--------------
+server
+只用ipv4 地址通信。
+    loop.run_until_complete(
+        serve(
+            #args.host,#ipv6
+            "127.0.0.1",#ipv4
+
+
+------
+浏览器访问server handshake 错误的原因，因为server 用的是ipv6地址。
+另外一个是server 启动证书需要fullchanin.cer 也就是certificate.crt和ca_bundle.crt 的合并，ca在前。
+
+
+
+
+
+
+
+私有证书生成：
+
+https://zhuanlan.zhihu.com/p/423506052
+私有证书貌似不需要合并mykey.pem ,因为没有ca_bulde.pem
+# private key
+$openssl genrsa -des3 -out server.key 1024   //私钥
+# generate csr
+$openssl req -new -key server.key -out server.csr
+# generate certificate
+$openssl ca -in server.csr -out server.crt -cert ca.crt -keyfile ca.key   //公钥,自己给自己颁发证书。
+
+-------
+
+js  函数要添加aysnc 里面才能用await,不然会提示找不到key word
